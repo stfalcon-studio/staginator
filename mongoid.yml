@@ -1,0 +1,13 @@
+production:
+  clients:
+    default:
+      database: staginator_production
+      hosts:
+        - localhost:27017
+
+development:
+  clients:
+    default:
+      database: staginator_production
+      hosts:
+        - localhost:27017

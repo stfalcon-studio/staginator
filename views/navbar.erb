@@ -1,0 +1,40 @@
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Staginator</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li <%= 'class="active"' if @active_item == 'help' %>><a href="/help">Help</a></li>
+        <li class="dropdown <%= 'active' if @active_item == 'project_page' %>">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            <% if @current_project %>
+                <%= "Project: #{@current_project}" %>
+            <% else %>
+                <%= 'Select project' %>
+            <% end %>
+            <span class="caret">
+          </span></a>
+          <ul class="dropdown-menu" role="menu">
+            <% @user_projects.each do |p| %>
+                <li><a href="/project/<%= p["name"] %><%= "/#{@active_project_tab}" if @active_project_tab %>"><%= p["name"] %></a></li>
+            <% end %>
+          </ul>
+        </li>
+        <li <%= 'class="active"' if @active_item == 'create_new' %>><a href="/create_new">Create new <span class="glyphicon glyphicon-plus"></span></a></li>
+      </ul>
+      <div id="navbar" class="navbar-collapse collapse">
+        <form class="navbar-form navbar-right" action="/logout">
+          <a href="<%= Sinatra::Application.settings.gitlab_protocol + '://' + settings.gitlab_host + '/profile' %>" target="_blank"><%= @username %></a>
+          <button type="submit" class="btn btn-warning">Log out</button>
+        </form>
+      </div>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>

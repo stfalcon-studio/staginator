@@ -1,0 +1,26 @@
+<div class="container navless-container">
+  <div class="content">
+    <% if @activity %>
+        <% @activity.each do |action| %>
+            <% label_type = 'success' if action['type'] == 'build' %>
+            <% label_type = 'danger' if action['type'] == 'remove' %>
+            <p><span class="label label-<%= label_type %>"><%= action['type'].capitalize %></span> on <a href="/project/<%= action['project'] %>"><%= action['project'] %></a> for <a target="_blank" href="http://<%= action['branch'] %>.<%= action['project'] %>.<%= @stag_prefix %>/"><%= action['branch'] %></a></p>
+            <small><span class="label label-default"><%= action['date'].strftime('%H:%M %d.%m.%Y') %></span> by
+              <% if action['email'].include?('@') %>
+                  <a href="mailto:<%= action['email'] %>"><%= action['email'] %></a>
+              <% else %>
+                  <%= action['email'] %>
+              <% end %>
+              <%= "(#{action['via']})" if action['via'] %>
+              </small>
+            <hr>
+        <% end %>
+    <% else %>
+        <p>
+            <div class="alert alert-info" role="alert">
+              No recent activity
+            </div>
+        </p>
+    <% end %>
+  </div>
+</div>

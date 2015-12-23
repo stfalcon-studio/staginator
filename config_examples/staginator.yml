@@ -1,0 +1,7 @@
+apt_packages: ['redis-server', 'supervisor']
+run_services: ['redis-server', 'supervisor']
+deploy_callbacks:
+    after_clone: ['ls -l', 'whoami'] # run command after clone repo. $PWD = /stag/new
+    before_composer: ['rm web/app.php', 'ls -l web'] # symfony only, do smth before run composer. $PWD = /stag/new
+    after_composer: ['rm -rf vendor/*', 'touch vendor/no_way'] # symfony only, run smth after composer install. $PWD = /stag/new
+    after_deploy: ['rm .htaccess', 'ls -la'] # run command at the end of deploy. $PWD = /stag/www

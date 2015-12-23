@@ -1,0 +1,14 @@
+{
+  "name": "sh.js",
+  "homepage": "https://github.com/CodeboxIDE/sh.js",
+  "version": "1.1.1",
+  "_release": "1.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.1.1",
+    "commit": "330afd25c9c83e85d635a4db697503a465b1e75f"
+  },
+  "_source": "git://github.com/CodeboxIDE/sh.js.git",
+  "_target": "~1.1.1",
+  "_originalSource": "CodeboxIDE/sh.js"
+}

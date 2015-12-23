@@ -1,0 +1,31 @@
+server {
+
+   listen ip_addr:80 default_server;
+   server_name _;
+
+   error_page 404 /404.html;
+
+   location / {
+     return 404;
+   }
+
+  location = /404.html {
+    root /var/www/not-found-page;
+  }
+
+  location /bs_vendor {
+    root /var/www/not-found-page;
+  }
+
+  location ~ .gif {
+    root /var/www/not-found-page;
+  }
+  location /api {
+    proxy_pass http://127.0.0.1:4567/api;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    if_modified_since off;
+    proxy_pass_header Last-Modified;
+  }
+}

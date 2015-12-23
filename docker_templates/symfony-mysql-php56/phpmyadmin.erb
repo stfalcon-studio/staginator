@@ -1,0 +1,9 @@
+<?php
+$i++;
+$cfg['Servers'][$i]['verbose'] = '<%= @project_name %>';
+$cfg['Servers'][$i]['host'] = '127.0.0.1';
+$cfg['Servers'][$i]['port'] = '<%= @mysql_tcp_port %>';
+$cfg['Servers'][$i]['connect_type'] = 'tcp';
+$cfg['Servers'][$i]['extension'] = 'mysqli';
+$cfg['Servers'][$i]['auth_type'] = 'cookie';
+?>

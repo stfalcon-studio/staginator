@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Staginator: <%= @current_project %></title>
+
+  <!-- Bootstrap -->
+  <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<%= ERB.new(File.read("#{settings.root}/views/navbar.erb"), 0, '-').result(binding) %>
+
+<div class="col-xs-12">
+  <% if flash[:project_rebuild] %>
+      <div class="alert alert-success" role="alert" id="alert_success">
+        <strong>In progress.</strong> It will take awhile. You will get notification by email when it be ready.
+        <div class="pull-right"><a href="#" id="close_alert_success"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></div>
+      </div>
+  <% end %>
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation"><a href="/project/<%= @current_project %>">Stagings</a></li>
+    <li role="presentation"><a href="/project/<%= @current_project %>/activity">Activity</a></li>
+    <li role="presentation"><a href="/project/<%= @current_project %>/port_forwarding">Port forwarding</a></li>
+    <li role="presentation" class="active"><a href="/project/<%= @current_project %>/info">Info</a></li>
+  </ul>
+  <br>
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+      <% if @gitlab_user_permission == 40 %>
+          <tr>
+            <td>Webhook:</td>
+            <td>
+              <%= '<span class="label label-success">added</span>' if @webhook_status %>
+              <%= '<span class="label label-danger">absent</span>' unless @webhook_status %>
+            </td>
+            <td>
+              <form class="form" action="/project/<%= @current_project %>/info/webhook" method="post">
+                <%= "<button type=\"submit\" name=\"remove\" value=\"#{@current_project}\" class=\"btn btn-sm btn-danger\">Remove</button>" if @webhook_status %>
+                <%= "<button type=\"submit\" name=\"add\" value=\"#{@current_project}\" class=\"btn btn-sm btn-success\">Add</button>" unless @webhook_status %>
+              </form>
+            </td>
+          </tr>
+      <% end %>
+    <tr>
+      <td>MySQL root password:</td>
+      <td><b><%= @mysql_root_password %></b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>phpMyAdmin:</td>
+      <td><a target="_blank" href="<%= @phpmyadmin_url %>"><%= @phpmyadmin_url %></a></td>
+      <td></td>
+    </tr>
+    </tbody>
+  </table>
+  <p><span class="label label-warning">Note:</span> Names of DB is md5 hash of branch name. You can get it by running: <span class="label label-default">echo -n some_branch_name|md5sum</span></p>
+  <!--<p><button type="button" class="btn btn-danger">Link</button></p>-->
+
+  <% if @gitlab_user_permission == 40 %>
+      <style>
+        .panel-heading span {
+          margin-top: -20px;
+          font-size: 15px;
+        }
+        .row {
+          margin-top: 40px;
+          padding: 0 10px;
+        }
+        .clickable {
+          cursor: pointer;
+        }
+      </style>
+      <div class="panel panel-danger" style="margin-top: 3%; border-color: #d9534f;">
+        <div class="panel-heading" style="background-color: #d9534f; color: white;">
+          <h3 class="panel-title">Danger zone</h3>
+          <span class="pull-right clickable panel-collapsed"><i class="glyphicon glyphicon-chevron-down"></i></span>
+        </div>
+        <div class="panel-body" style="display: none;">
+          <table class="table table-striped">
+            <thead>
+            <tr>
+              <th></th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td><strong>Rebuild project image</strong></td>
+              <td>
+                <form class="form" action="/project/<%= @current_project %>/info/rebuild" method="post" id="rebuild_image">
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select base image <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <% @projects_templates.each do |t| %>
+                          <li>
+                            <a href="javascript:{}" onclick="send_form('<%= t %>')"><%= t %></a>
+                          </li>
+                      <% end %>
+                    </ul>
+                  </div>
+                </form>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Remove all project data</strong></td>
+              <td>
+                <form class="form" action="/project/<%= @current_project %>/info/remove" method="post">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure？')">Remove project</button>
+                </form>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+  <% end %>
+
+</div>
+<%= ERB.new(File.read("#{settings.root}/views/footer.erb"), 0, '-').result(binding) %>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script type="text/javascript">
+  jQuery(function ($) {
+    $('.panel-heading span.clickable').on("click", function (e) {
+      if ($(this).hasClass('panel-collapsed')) {
+        // expand the panel
+        $(this).parents('.panel').find('.panel-body').slideDown();
+        $(this).removeClass('panel-collapsed');
+        $(this).find('i').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+      }
+      else {
+        // collapse the panel
+        $(this).parents('.panel').find('.panel-body').slideUp();
+        $(this).addClass('panel-collapsed');
+        $(this).find('i').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+      }
+    });
+  });
+</script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/close_alert.js"></script>
+<script>
+  function send_form(base_image) {
+      var form = $('#rebuild_image');
+      form.append("<input type='hidden' name='base_image' value='" + base_image + "'/>");
+      form.submit(); return false;
+  }
+</script>
+</body>
+</html>

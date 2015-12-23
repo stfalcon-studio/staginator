@@ -1,0 +1,22 @@
+app_hostname: 'staginator.yourdomain.com'
+session_secret: 'change_this'
+terminal_secret: 'change_this'
+webhook_secret: 'change_this'
+gitlab_host: 'git.yourdomain.com'
+gitlab_protocol: 'http'
+gitlab_admin_private_token: 'change_this'
+public_ip: '192.168.0.1'
+stag_prefix: 'stag.yourdomain.com'
+webhook_domain: 'staginator.yourdomain.com'
+phpmyadmin_url: 'http://192.168.0.1:6789/'
+docker_templates:  ['symfony-mysql-php56', 'generic-mysql-php56']
+redis_host: '127.0.0.1'
+redis_port: '6379'
+redis_db: 'staginator_activity'
+redis_ttl: 187200
+container_ttl: 345600
+container_max_ttl: 2592000
+container_maxcpu: 1
+container_maxmem: '1000m'
+api_limit_ttl: 86400
+api_request_limit: 20

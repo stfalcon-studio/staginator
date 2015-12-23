@@ -1,0 +1,81 @@
+#!/bin/bash
+
+/etc/init.d/ssh start
+/etc/init.d/cron start
+/etc/init.d/apache2 start
+/etc/init.d/memcached start
+cd /var/www/docker-web-terminal && su www-data -c "npm start &"
+
+path="/stag"
+mkdir $path/time
+
+STAGING_BRANCH=${STAGING_BRANCH:-""}
+db_user="root"
+db_pass="<%= @mysql_password %>"
+db_name=`echo -n $STAGING_BRANCH|md5sum | awk '{print $1}'`
+
+user="www-data"
+
+
+lock_file=`ls $path/time|grep run.lock`;
+wait=yes;
+
+echo "Update $host";
+
+while [ "$wait" = "yes" ] 
+do
+        if [ -z "$lock_file" ]; then
+                echo "ok, continue"; wait=no;
+        else
+                echo "Another copy running now! Waiting 60 seconds..."; sleep 60;
+        fi;
+
+        lock_file=`ls $path/time|grep run.lock`;
+done
+touch $path/time/run.lock;
+mkdir $path/new
+
+mysql -u root -p$db_pass -h <%= @project_name %>-mysql -e "DROP DATABASE IF EXISTS \`$db_name\`;"
+mysql -u root -p$db_pass -h <%= @project_name %>-mysql -e "CREATE DATABASE \`$db_name\`;"
+
+rm -rf /.composer/cache
+ln -s /stag/shared/composer_cache /.composer/cache
+
+rm -rf /root/.composer
+ln -s /.composer /root/.composer
+
+echo "clone"
+git clone -b $STAGING_BRANCH <%= @repo_url %>  $path/new
+/usr/local/bin/callback_runner.rb $path/new/staginator.yml install_packages
+/usr/local/bin/callback_runner.rb $path/new/staginator.yml start_services
+/usr/local/bin/callback_runner.rb $path/new/staginator.yml after_clone_repo
+
+cp $path/new/cron.conf /etc/cron.d/stag
+WEB_PATH=$path/www
+sed -i "s,%dont_touch_this%,$WEB_PATH," /etc/cron.d/stag
+
+cd $path/new/ && git submodule init 
+cd $path/new/ && git submodule update
+
+/usr/local/bin/callback_runner.rb $path/new/staginator.yml deploy_steps
+
+echo '<h1><font color=#00FF00>Build complete, reload the page.</font><br></h1>'
+
+rm -rf $path/www
+mv $path/new $path/www
+
+chown -R $user:$user $path/www
+#chown -R $user:$user $path/shared/uploads
+
+echo "last update: `date`" >> $path/www/web/status.txt
+
+rm $path/time/run.lock;
+
+/etc/init.d/apache2 stop
+/usr/local/bin/mailcatcher --smtp-port 25 --ip 0.0.0.0 -v -f &
+
+/usr/local/bin/callback_runner.rb $path/www/staginator.yml after_deploy
+chown -R $user:$user $path/www
+#echo "staging for branch: $STAGING_BRANCH ready. http://$STAGING_BRANCH.<%= @project_name %>.yourdomain.com " | slackcmd.py -u [slack_webhook_URL] -c "#<%= @project_name %>" -n Staginator
+source /etc/apache2/envvars
+/usr/sbin/apache2ctl -D FOREGROUND

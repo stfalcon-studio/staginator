@@ -1,0 +1,3 @@
+Host git.stfalcon.com
+StrictHostKeyChecking no
+UserKnownHostsFile=/dev/null

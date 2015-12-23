@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Staging not found</title>
+
+    <!-- Bootstrap -->
+    <link href="/bs_vendor/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="http://yourdomain.com/">Staginator</a>
+        </div>
+    </div><!--/.nav-collapse -->
+    </div>
+</nav>
+<div class="container navless-container">
+    <div class="content">
+        <h1 id="not-found" style="display: none;">This staging don't exist.</h1>
+        <h1 id="staging-removed" style="display: none;">This staging stopped. But you can run it...</h1>
+        <img id="progress-animation" src="/loading.gif" style="display: block; margin-left: auto; margin-right: auto">
+        <button id="start-btn" type="button" class="btn btn-lg btn-success" style="display: none; margin-left: auto; margin-right: auto">Start</button>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script>
+    var domain = window.location.host;
+    var branch = domain.split(".")[0];
+    var project = domain.split(".")[1];
+    $.ajax({
+        type: "GET",
+        url: '/api/v1/project/' + project + '/branch/' + branch,
+        success: function (data) {
+            var staging_status = jQuery.parseJSON(data);
+            if (staging_status.project_exist == true && staging_status.branch_exist == true && staging_status.up == false) {
+                $("#progress-animation").hide();
+                $("#staging-removed").show();
+                $("#start-btn").show();
+                $("#start-btn").css("display", "block");
+            } else {
+                $("#progress-animation").hide();
+                $("#not-found").show();
+            }
+        },
+        error: function(){
+            $("#progress-animation").hide();
+            $("#not-found").show();
+        }
+    });
+
+    $("#start-btn").click(function() {
+        $("#start-btn").hide();
+        $("#progress-animation").show();
+        $.ajax({
+            type: 'POST',
+            url: '/api/v1/project/' + project + '/branch/' + branch,
+            data: 'start=true',
+            success: function(data){
+                setTimeout(reload_page, 30000);
+            }
+        });
+    });
+
+    function reload_page() {
+        location.reload();
+    }
+</script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="/bs_vendor/js/bootstrap.min.js"></script>
+</body>
+</html>

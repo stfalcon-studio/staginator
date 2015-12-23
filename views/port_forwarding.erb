@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Staginator: <%= @current_project %></title>
+
+  <!-- Bootstrap -->
+  <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<%= ERB.new(File.read("#{settings.root}/views/navbar.erb"), 0, '-').result(binding) %>
+
+<div class="col-xs-12">
+  <% if flash[:port_busy] %>
+      <div class="alert alert-danger" role="alert" id="alert_danger">
+        This port is busy.
+        <div class="pull-right"><a href="#" id="close_alert_danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></div>
+      </div>
+  <% end %>
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation"><a href="/project/<%= @current_project %>">Stagings</a></li>
+    <li role="presentation"><a href="/project/<%= @current_project %>/activity">Activity</a></li>
+    <li role="presentation" class="active"><a href="/project/<%= @current_project %>/port_forwarding">Port forwarding</a></li>
+    <li role="presentation"><a href="/project/<%= @current_project %>/info">Info</a></li>
+  </ul>
+  <br>
+  <div class="col-md-6">
+    <a href="/project/<%= @current_project %>/port_forwarding/create" class="btn btn-success">Add new</a>
+  </div>
+  <div class="col-md-6">
+    <h4 style="position: absolute; right: 0px; width: 300px;">
+      <span class="label label-info">Public IP: <%= @public_ip %></span>
+    </h4>
+  </div>
+  <% if @ip_forwardings.count > 0 %>
+      <table class="table table-striped" style="margin-top: 30px;">
+        <thead>
+        <tr>
+          <th>Container name</th>
+          <th>Container port</th>
+          <th>Host port</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @ip_forwardings.each do |ip_forward| %>
+            <tr>
+              <td><%= ip_forward.container_name %>.<%= @current_project %>.<%= @stag_prefix %></td>
+              <td><%= ip_forward.container_port %></td>
+              <td><%= ip_forward.host_port %></td>
+              <td><a href="#" class="btn btn-sm btn-danger" onclick="remove_port_forwarding(this, '<%= @current_project %>', '<%= ip_forward.container_name %>', '<%= ip_forward.container_port %>', '<%= ip_forward.host_port %>')">remove</a></td>
+            </tr>
+        <% end %>
+        </tbody>
+      </table>
+  <% else %>
+      <div class="alert alert-info" role="alert" style="margin-top: 50px;">
+        No any port forwarding for this project.
+      </div>
+  <% end %>
+</div>
+<%= ERB.new(File.read("#{settings.root}/views/footer.erb"), 0, '-').result(binding) %>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/close_alert.js"></script>
+<script>
+  function remove_port_forwarding(element, project_name, project_branch, container_port, host_port) {
+    var $this = $(element).closest('tr');
+
+    $.ajax({
+      type: 'POST',
+      url: '/project/' + project_name + '/port_forwarding?remove=1',
+      data: 'project_branch=' + project_branch + '&container_port=' + container_port + '&host_port=' + host_port,
+      success: function(data){
+        $this.hide(1000);
+      }
+    });
+  }
+</script>
+</body>
+</html>

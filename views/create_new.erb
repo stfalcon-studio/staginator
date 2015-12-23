@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Staginator: create new</title>
+
+  <!-- Bootstrap -->
+  <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<%= ERB.new(File.read("#{settings.root}/views/navbar.erb"), 0, '-').result(binding) %>
+
+<div class='container navless-container'>
+
+<% if flash[:staging_creating] %>
+    <div class="alert alert-success" role="alert" id="alert_success">
+      <strong>In progress.</strong> It will take awhile. You will get notification by email when it be ready.
+      <div class="pull-right"><a href="#" id="close_alert_success"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></div>
+    </div>
+<% end %>
+
+<% unless flash[:staging_creating] %>
+  <% if flash[:permission_error] %>
+      <div class="alert alert-danger" role="alert" id="alert_danger">
+        You must be "Master" on this repository to create new stagings.
+        <div class="pull-right"><a href="#" id="close_alert_danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></div>
+      </div>
+  <% end %>
+    <div class='content'>
+        <form action="/create_new" class="form" method="post">
+        <strong>Select repository:</strong>
+        <div class='input'>
+            <div class="col-lg-3">
+                <select class="form-control" name="selected_repo">
+                    <% @projects_without_staging.each do |p|%>
+                      <option value="<%= p['name'] %>"><%= p['name'] %></option>
+                    <% end %>
+                </select>
+            </div>
+        </div>
+        <br><br><br>
+        <strong>With template:</strong>
+        <div class='input'>
+            <div class="col-lg-3">
+                <select class="form-control" name="selected_template">
+                    <% @projects_templates.each do |t|%>
+                      <option value="<%= t %>"><%= t %></option>
+                    <% end %>
+                </select>
+              <a href="/help/container_customization" target="_blank" style="color: #0099FF; border-bottom: 1px dotted #0099FF; text-decoration: none;">Read more about templates</a>
+            </div>
+        </div>
+        <br><br><br>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="webhook" value="true"> Auto deployment (adds webhook to gitlab)
+            </label>
+        </div>
+        <hr>
+        <button type="submit" class="btn btn-success">Create stagings group</button>
+        </form>
+
+    </div>
+<% end %>
+</div>
+
+<%= ERB.new(File.read("#{settings.root}/views/footer.erb"), 0, '-').result(binding) %>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/close_alert.js"></script>
+</body>
+</html>
